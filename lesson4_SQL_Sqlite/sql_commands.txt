@@ -1,0 +1,37 @@
+-- READ -----------------------------------------------------------
+select * from customers;
+
+select FirstName, LastName from customers c ;
+
+select FirstName, LastName, City from customers
+where FirstName = 'fgdfgdfgdfgd';
+
+select FirstName, LastName from customers
+where FirstName = 'John' or City = 'Odesa'
+
+select FirstName, LastName from customers
+where (FirstName = 'John' or City = 'Odesa') and Country = 'UA'
+
+select FirstName, LastName from customers
+-- where FirstName like '%a' and FirstName like 'M%'
+where FirstName like 'M%a'
+
+select FirstName, LastName from customers
+--where City = 'Boston' or City = 'Odesa'
+where City in ('Boston', 'Odesa')
+
+select * from customers
+order by Country desc
+
+-- WRITE -------------------------------------------------------
+update customers 
+set City = 'Kyiv'
+where FirstName = 'Dmytro'
+
+-- CREATE -------------------------------------------------------
+Insert into customers (FirstName, LastName, Email) 
+values ('Elon', 'Musk', 'emusk@spacex.com')
+
+-- DELETE -------------------------------------------------------
+delete from customers 
+where FirstName  = 'Elon'
