@@ -8,6 +8,7 @@ from collections import OrderedDict
 import requests
 import sys
 import psutil
+import tracemalloc
 
 from time import sleep
 
