@@ -27,6 +27,6 @@ def mylist(n):
     return result
 
 
-mylist(5)
+mylist(1)
 mylist(111)
 mylist(65536)
