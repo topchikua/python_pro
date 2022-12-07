@@ -1,47 +1,71 @@
-import pathlib
-import os
-import random
-import time
-import timeit
+from heapq import nsmallest
+from operator import itemgetter
 import functools
-from collections import OrderedDict
 import requests
-import sys
-import psutil
-import tracemalloc
-
-from time import sleep
 
 
-# TODO: 1. Реалізувати LFU алгоритм для кешування. За базу берем існуючий декоратор.Написати для фетчування юерелів.
+# TODO: 1. Реалізувати LFU алгоритм для кешування. За базу берем існуючий декоратор.Написати для фетчування URL-ів.
 #  Додати можливість указати максимум елементів в кеші.
 
+class Counter(dict):
+    # Відображає, де значення за замовчуванням дорівнюють нулю
+    def __missing__(self, key):
+        return 0
 
-def cache(max_limit=64):
-    def internal(f):
-        @functools.wraps(f)
-        def deco(*args, **kwargs):
-            cache_key = (args, tuple(kwargs.items()))
-            if cache_key in deco._cache:
-                # переносимо в кінець списку
-                deco._cache.move_to_end(cache_key, last=True)
-                return deco._cache[cache_key]
-            result = f(*args, **kwargs)
-            # видаляємо якшо досягли ліміта
-            if len(deco._cache) >= max_limit:
-                # видаляємо перший елемент
-                deco._cache.popitem(last=False)
-            deco._cache[cache_key] = result
+
+def lfu_cache(maxsize=100):
+    def decorating_function(func):
+        cache = {}  # зіставлення аргументів з результатами
+        use_count = Counter()  # кількість звернень до кожного ключа
+        kwd_mark = object()  # окремі позиційні та ключові аргументи
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            key = args
+            if kwargs:
+                key += (kwd_mark,) + tuple(sorted(kwargs.items()))
+            use_count[key] += 1
+            # отримати запис кешу або створити, якщо не знайдено
+            try:
+                result = cache[key]
+                wrapper.hits += 1
+            except KeyError:
+                result = func(*args, **kwargs)
+                cache[key] = result
+                wrapper.misses += 1
+                # видаляємо найменш використовуваний запис в пам'яті
+                if len(cache) > maxsize:
+                    for key, _ in nsmallest(maxsize // 10,
+                                            use_count.iteritems(),
+                                            key=itemgetter(1)):
+                        del cache[key], use_count[key]
+
             return result
 
-        deco._cache = OrderedDict()
-        return deco
+        def clear():
+            cache.clear()
+            use_count.clear()
+            wrapper.hits = wrapper.misses = 0
 
-    return internal
+        wrapper.hits = wrapper.misses = 0
+        wrapper.clear = clear
+        print(wrapper)
+        return wrapper
+
+    return decorating_function
 
 
-@cache
+@lfu_cache
 def fetch_url(url, first_n=100):
     """Fetch a given url"""
     res = requests.get(url)
     return res.content[:first_n] if first_n else res.content
+
+
+fetch_url('https://telegram.org/')
+fetch_url('https://telegram.org/')
+fetch_url('https://google.com')
+fetch_url('https://ithillel.ua')
+fetch_url('https://dou.ua')
+fetch_url('https://ain.ua')
+fetch_url('https://ain.ua')
