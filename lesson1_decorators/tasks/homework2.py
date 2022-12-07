@@ -1,10 +1,11 @@
+from datetime import datetime
 import tracemalloc
 
 
 # TODO: 2. Створити декоратор для заміру пам'яті.
 
 
-def memory_check(msg):
+def memory_check(msg='Повідомлення не отримано, дефолтний текст...'):
     print(msg)
 
     def outer(func):
@@ -12,8 +13,9 @@ def memory_check(msg):
             tracemalloc.start()
             result = func(*args, **kwargs)
             first_size, first_peak = tracemalloc.get_traced_memory()
-            print(f"Якщо список генерується з {len(result)} елементів, буде використано {first_size} B")
+            print(f"{datetime.now()}\nПри виконанні функції: {func.__name__}, \nбуде використано {first_size}B\n")
             tracemalloc.reset_peak()
+            # print(result)
             return result
 
         return wrapper
@@ -21,7 +23,7 @@ def memory_check(msg):
     return outer
 
 
-@memory_check('Пам\'ять необхідна для обчислень:')
+@memory_check(msg='Пам\'ять необхідна для обчислень:')
 def mylist(n):
     result = [x for x in range(n) if x % 2 == 0]
     return result
