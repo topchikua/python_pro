@@ -15,7 +15,6 @@ def memory_check(msg='Повідомлення не отримано, дефол
             first_size, first_peak = tracemalloc.get_traced_memory()
             print(f"{datetime.now()}\nПри виконанні функції: {func.__name__}, \nбуде використано {first_size}B\n")
             tracemalloc.reset_peak()
-            # print(result)
             return result
 
         return wrapper
