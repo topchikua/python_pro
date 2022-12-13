@@ -13,10 +13,10 @@ def lfu_cache(func, maxsize=100):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         key_arg = args[0]
-        try:
+        if key_arg in cache:
             result = cache[key_arg]
             cache_count[key_arg] += 1
-        except KeyError:
+        else:
             if len(cache) == maxsize:
                 min_key, min_count = sorted(cache_count.items(), key=lambda item: item[1])[0]
                 cache.pop(min_key)
